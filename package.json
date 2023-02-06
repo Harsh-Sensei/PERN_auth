@@ -1,0 +1,19 @@
+{
+  "name": "iitbasc",
+  "version": "1.0.0",
+  "description": "outlab4",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "angular",
+    "node"
+  ],
+  "author": "harsh-sensei",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "pg": "^8.9.0"
+  }
+}
