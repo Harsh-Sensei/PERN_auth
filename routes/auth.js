@@ -1,5 +1,5 @@
 const {Router} = require('express');
-const { getUsers, getDepartments, getInstrCourses, getCourses, getStudentCourses, getPrereq } = require('../controllers/auth');
+const { getAuthentication, getDepartments, getInstrCourses, getCourses, getStudentCourses, getPrereq } = require('../controllers/auth');
 const router = Router();
 
 router.get('/authenticate', getAuthentication);
