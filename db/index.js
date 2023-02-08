@@ -1,6 +1,8 @@
 const {Pool} = require('pg');
-const {config} = require('../config');
-
+let {config} = require('./config');
+// console.log(config)
+// return;
+config = {user : 'postgres', host : 'localhost', port : 5432, db : 'lab2db', pass : 'ben10ua'}
 const pool = new Pool({
     user: config.user,
     host: config.host,

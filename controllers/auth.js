@@ -4,6 +4,7 @@ const db = require('../db');
 exports.getAuthentication = async (req, res) => {
     const username = req.query.username;
     const password = req.query.password;
+    console.log(username+password)
     db.query(`SELECT * FROM user_password WHERE ID=${username}`, (err, result) => {
         if (err) {
             console.log(err);
@@ -17,6 +18,8 @@ exports.getAuthentication = async (req, res) => {
     });
 }
 
+
+//checked
 exports.getDepartments = async (req, res) => {
     db.query('SELECT dept_name FROM department', (err, result) => {
         if (err) {
@@ -26,6 +29,8 @@ exports.getDepartments = async (req, res) => {
     });
 }
 
+
+//checked
 exports.getCourses = async (req, res) => {
     db.query('SELECT * FROM course', (err, result) => {
         if (err) {
@@ -35,10 +40,11 @@ exports.getCourses = async (req, res) => {
     });
 }
 
+//checked
 exports.getStudentCourses = async (req, res) => {
-    let stud_id = req.params.id;
-    tmp_q = `SELECT * from takes WHERE takes.ID=${stud_id} 
-    AND NOT EXISTS (SELECT * FROM instructor WHERE instructor.ID=${stud_ID})`;
+    let stud_id = req.query.id;
+    tmp_q = `SELECT * from takes WHERE id='${stud_id}'`;
+    // AND NOT EXISTS (SELECT * FROM instructor WHERE id=${stud_id})`;
     db.query(tmp_q, (err, result) => {
         if (err) {
             console.log(err);
@@ -47,16 +53,32 @@ exports.getStudentCourses = async (req, res) => {
     });
 }
 
+
+//checked
 exports.getInstrCourses = async (req, res) => {
-    let year1 = req.params.year1;
-    let sem1 = req.params.sem1;
-    let year2 = req.params.year2;
-    let sem2 = req.params.sem2;
+    let year = req.query.year;
+    let sem = req.query.sem;
+    let prev = req.query.prev;
+    console.log(`year : ${year}`);
+    console.log(`sem : ${sem}`)
+    console.log(`prev : ${prev}`)
 
-    tmp_q = `SELECT * from takes WHERE 
-    (takes.year=${year1} AND takes.semester=${sem1}) OR
-    (takes.year=${year2} AND takes.semester=${sem2})`;
+    
+    if(year === undefined || sem === undefined)
+    {
+        tmp_q = `SELECT * from teaches`;
+    }
+    else if(prev == 0)
+    {
+        tmp_q = `SELECT * from teaches WHERE year=${year} AND semester=${sem}
+        ORDER BY course_id`;
+    }else
+    {
+        tmp_q = `SELECT * from teaches WHERE NOT(year=${year} AND semester=${sem}) 
+        ORDER BY year, semester, course_id`;    
+    }
 
+    console.log(tmp_q);
     db.query(tmp_q, (err, result) => {
         if (err) {
             console.log(err);
@@ -65,8 +87,19 @@ exports.getInstrCourses = async (req, res) => {
     });
 }
 
+
+//checked
 exports.getPrereq = async (req, res) => {
-    tmp_q = `SELECT * FROM prereq`;
+    let cid = req.query.cid;
+
+    if(cid === undefined)
+    {
+        tmp_q = `SELECT * FROM prereq`;
+    }
+    else
+    {
+        tmp_q = `SELECT * FROM prereq WHERE course_id=${cid}`;
+    }
     db.query(tmp_q, (err, result) => {
         if (err) {
             console.log(err);
