@@ -1,20 +1,32 @@
 const db = require('../db');
 const bcrypt = require('bcrypt');
+const HASHING_ROUNDS = 8;
 // unchecked
 exports.getAuthentication = async (req, res) => {
     const username = req.query.username;
     const password = req.query.password;
-    console.log(username+password)
-    db.query(`SELECT * FROM user_password WHERE ID=${username}`, (err, result) => {
-        if (err) {
-            console.log(err);
+    // console.log(username+password)
+    // (bcrypt.hash(password,HASHING_ROUNDS).then((PSS)=>{
+    //     console.log(PSS);
+    // }));
+    db.query(`SELECT * FROM user_password WHERE ID='${username}'`, (err, result) => {
+        if (err||result.rows.length===0) {
+            res.status(200).json({authenticate:false,error:'Username not found'});
+            return;
         }
         let pass_hash = result.rows[0].hashed_password;
         let pass_match = false;
+        console.log(password,pass_hash);
         bcrypt.compare(password, pass_hash, function(err, result) {
             pass_match = result;
+            if(pass_match){
+                req.session.userdata = {
+                    userid:username,
+                }
+                console.log(req.session)
+            }
+            res.status(200).json({authenticate : pass_match});
         });
-        res.status(200).json({authenticate : pass_match});
     });
 }
 
@@ -25,7 +37,12 @@ exports.getDepartments = async (req, res) => {
         if (err) {
             console.log(err);
         }
-        res.status(200).json(result.rows);
+        const output = {
+            data:result.rows,
+            userdata:req.session.userdata
+        }
+        console.log(output)
+        res.status(200).json(output);
     });
 }
 
@@ -89,7 +106,20 @@ exports.getCourseInfo = async (req, res) => {
         }
     });
 }
+exports.getHomePageInfo = async(req,res)=>{
+    const userid = req.session
+    if(req.session.userdata===undefined){
+        res.json({userid:null})
+        return;
+    }
+    //construct data.
+    const userdata = {
+        userid:req.session.userdata.userid
+    };
 
+    console.log(userid)
+    res.status(200).json(userdata)
+}
 //checked
 exports.getStudentCourses = async (req, res) => {
     let stud_id = req.query.id;

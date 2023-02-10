@@ -1,5 +1,5 @@
 const {Router} = require('express');
-const { getAuthentication, getDepartments, getCourseList, getCourseInfo, getStudentCourses, dropCourse, 
+const { getAuthentication,getHomePageInfo, getDepartments, getCourseList, getCourseInfo, getStudentCourses, dropCourse, 
      addCourse, getInstrCourses, getInstrList, getPrereq, getSearchResults, getRunningDepartments, getDepartmentCourses } = require('../controllers/auth');
 const router = Router();
 
@@ -8,6 +8,7 @@ router.get('/departments', getDepartments); //checked
 router.get('/courses', getCourseList); // checked
 router.get('/courseinfo', getCourseInfo);
 router.get('/studcourses', getStudentCourses);
+router.get('/homepageinfo',getHomePageInfo);
 router.get('/dropcourse', dropCourse);//checked
 router.get('/addcourse', addCourse);//checked
 router.get('/instrcourses', getInstrCourses); 
