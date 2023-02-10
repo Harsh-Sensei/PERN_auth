@@ -1,9 +1,10 @@
 const db = require('../db');
 
-// await
+// unchecked
 exports.getAuthentication = async (req, res) => {
     const username = req.query.username;
     const password = req.query.password;
+    console.log(username+password)
     db.query(`SELECT * FROM user_password WHERE ID=${username}`, (err, result) => {
         if (err) {
             console.log(err);
@@ -23,6 +24,39 @@ exports.getDepartments = async (req, res) => {
             console.log(err);
         }
         res.status(200).json(result.rows);
+    });
+}
+
+
+exports.getRunningDepartments = async (req, res) => {
+    const sem = req.query.sem;
+    const year = req.query.year;
+    tmp_q = `SELECT DISTINCT course.dept_name FROM section, course WHERE section.year=${year} AND section.semester=${sem} AND
+     section.course_id=course.course_id`;
+    db.query(tmp_q, (err, result) => {
+        if (err) {
+            console.log(err);
+        }
+        else{
+            res.status(200).json(result.rows);
+        }
+    });
+}
+
+exports.getDepartmentCourses = async (req, res) => {
+    const sem = req.query.sem;
+    const year = req.query.year;
+    const dept = req.query.dept;
+
+    tmp_q = `SELECT DISTINCT course.course_id, course.title FROM section, course WHERE section.year=${year} AND section.semester=${sem} AND
+     section.course_id=course.course_id AND course.dept_name=${dept}`;
+    db.query(tmp_q, (err, result) => {
+        if (err) {
+            console.log(err);
+        }
+        else{
+            res.status(200).json(result.rows);
+        }
     });
 }
 
@@ -55,7 +89,23 @@ exports.getCourseInfo = async (req, res) => {
 }
 
 exports.getStudentCourses = async (req, res) => {
-    let stud_id = req.params.id;
+    let stud_id = req.query.id;
+    tmp_q = `SELECT * from takes WHERE id='${stud_id}'`;
+    // AND NOT EXISTS (SELECT * FROM instructor WHERE id=${stud_id})`;
+    db.query(tmp_q, (err, result) => {
+        if (err) {
+            console.log(err);
+        }
+        else
+        {
+            res.status(200).json(result.rows);
+        }
+    });
+}
+
+//new query
+exports.getStudentInfo = async (req, res) => {
+    let stud_id = req.query.id;
     tmp_q = `SELECT * from takes WHERE takes.ID=${stud_id} 
     AND NOT EXISTS (SELECT * FROM instructor WHERE instructor.ID=${stud_ID})`;
     db.query(tmp_q, (err, result) => {
@@ -66,14 +116,14 @@ exports.getStudentCourses = async (req, res) => {
     });
 }
 
-// new query
+// checked
 exports.dropCourse = async (req, res) => {
     let stud_id  = req.query.id;
     let course_id = req.query.course_id;
     let section = req.query.section;
     let year = req.query.year;
     let semester = req.query.semester;
-    tmp_q = `DELETE FROM takes WHERE takes.ID=${stud_id} AND takes.course_id=${course_id} AND takes.section=${section} AND takes.year=${year} AND takes.semester=${semester}`;
+    tmp_q = `DELETE FROM takes WHERE takes.ID=${stud_id} AND takes.course_id=${course_id} AND takes.sec_id=${section} AND takes.year=${year} AND takes.semester=${semester}`;
 
     db.query(tmp_q, (err, result) => {
         if (err) {
@@ -85,14 +135,14 @@ exports.dropCourse = async (req, res) => {
     });
 }
 
-// new query
+// checked
 exports.addCourse = async (req, res) => {
     let stud_id  = req.query.id;
     let course_id = req.query.course_id;
     let section = req.query.section;
     let year = req.query.year;
     let semester = req.query.semester;
-    tmp_q = `INSERT INTO takes VALUES (${stud_id}, ${course_id}, ${section},${semester}, ${year}, NULL)`;
+    tmp_q = `INSERT INTO takes VALUES (${stud_id}, ${course_id}, ${section}, ${semester}, ${year}, NULL)`;
     db.query(tmp_q, (err, result) => {
         if (err) {
             console.log(err);
@@ -103,16 +153,31 @@ exports.addCourse = async (req, res) => {
     });
 }
 
+//checked
 exports.getInstrCourses = async (req, res) => {
-    let year1 = req.params.year1;
-    let sem1 = req.params.sem1;
-    let year2 = req.params.year2;
-    let sem2 = req.params.sem2;
+    let year = req.query.year;
+    let sem = req.query.sem;
+    let prev = req.query.prev;
+    console.log(`year : ${year}`);
+    console.log(`sem : ${sem}`)
+    console.log(`prev : ${prev}`)
 
-    tmp_q = `SELECT * from takes WHERE 
-    (takes.year=${year1} AND takes.semester=${sem1}) OR
-    (takes.year=${year2} AND takes.semester=${sem2})`;
+    
+    if(year === undefined || sem === undefined)
+    {
+        tmp_q = `SELECT * from teaches`;
+    }
+    else if(prev == 0)
+    {
+        tmp_q = `SELECT * from teaches WHERE year=${year} AND semester=${sem}
+        ORDER BY course_id`;
+    }else
+    {
+        tmp_q = `SELECT * from teaches WHERE NOT(year=${year} AND semester=${sem}) 
+        ORDER BY year, semester, course_id`;    
+    }
 
+    console.log(tmp_q);
     db.query(tmp_q, (err, result) => {
         if (err) {
             console.log(err);
@@ -128,12 +193,39 @@ exports.getInstrList = async (req, res) => {
         if (err) {
             console.log(err);
         }
-        res.status(200).json(result.rows);
+        else{
+            res.status(200).json(result.rows);
+        }
     });
 }
 
+
+// new query 
+exports.getSearchResults = (req, res) => {
+    qry = req.query.qry;
+    tmp_q = `SELECT course_id, title FROM courses WHERE course_id LIKE '%${qry}%' OR title LIKE '%${qry}%'`;
+    db.query(tmp_q, (err, result) => {
+        if (err) {
+            console.log(err);
+        }
+        else{
+            res.status(200).json(result.rows);
+        }
+    });
+}
+
+//checked
 exports.getPrereq = async (req, res) => {
-    tmp_q = `SELECT * FROM prereq`;
+    let cid = req.query.cid;
+
+    if(cid === undefined)
+    {
+        tmp_q = `SELECT * FROM prereq`;
+    }
+    else
+    {
+        tmp_q = `SELECT * FROM prereq WHERE course_id=${cid}`;
+    }
     db.query(tmp_q, (err, result) => {
         if (err) {
             console.log(err);
@@ -141,3 +233,5 @@ exports.getPrereq = async (req, res) => {
         res.status(200).json(result.rows);
     });
 }
+
+
