@@ -14,6 +14,15 @@
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.0",
+    "express": "^4.18.2",
     "pg": "^8.9.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Harsh-Sensei/PERN_auth.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Harsh-Sensei/PERN_auth/issues"
+  },
+  "homepage": "https://github.com/Harsh-Sensei/PERN_auth#readme"
 }

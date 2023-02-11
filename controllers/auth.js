@@ -124,7 +124,7 @@ exports.dropCourse = async (req, res) => {
     let year = req.query.year;
     let semester = req.query.semester;
     tmp_q = `DELETE FROM takes WHERE takes.ID=${stud_id} AND takes.course_id=${course_id} AND takes.sec_id=${section} AND takes.year=${year} AND takes.semester=${semester}`;
-
+    
     db.query(tmp_q, (err, result) => {
         if (err) {
             console.log(err);
@@ -142,15 +142,45 @@ exports.addCourse = async (req, res) => {
     let section = req.query.section;
     let year = req.query.year;
     let semester = req.query.semester;
-    tmp_q = `INSERT INTO takes VALUES (${stud_id}, ${course_id}, ${section}, ${semester}, ${year}, NULL)`;
-    db.query(tmp_q, (err, result) => {
+
+    let q_res1 = null;
+    let q_res2 = null;
+    let q_res3 = null;
+    
+    tmp_q1 = `SELECT prereq_id FROM prereq WHERE course_id=${course_id}
+        EXCEPT SELECT course_id FROM takes WHERE id='${stud_id}' ;`;;
+    tmp_q2 = `select time_slot_id from section NATURAL JOIN takes WHERE takes.id='${stud_id}'   
+    AND takes.year=${year} AND takes.semester=${semester}`;
+    tmp_q3 = `select time_slot_id from section WHERE course_id=${course_id} AND year=${year} AND semester=${semester}`;
+    tmp_q_add = `INSERT INTO takes VALUES ('${stud_id}', '${course_id}', ${section}, '${semester}', ${year}, NULL)`;
+
+    const p1 = await db.query(tmp_q1, []).then((result) => {
+            q_res1 = result.rows;
+    });
+    const p2 = await db.query(tmp_q2, []).then((result) => {
+        q_res2 = result.rows;
+    });
+    const p3 = await db.query(tmp_q3, []).then((result) => {
+            q_res3 = result.rows;
+    });
+
+    const taken_time_slots = [];
+    for (let i = 0; i < q_res2.length; i++) {
+      taken_time_slots.push(q_res2[i].time_slot_id);
+    }
+    if (q_res1.length != 0 || (taken_time_slots.includes(q_res3[0].time_slot_id))) {
+
+      console.log(false);
+      res.status(200).send(`Couldn't register Course ${course_id} added by student ${stud_id}`);
+      return false;
+    }
+    db.query(tmp_q_add, (err, result) => {
         if (err) {
             console.log(err);
         }
-        else{
-            res.status(200).send(`Course ${course_id} added by student ${stud_id}`);
-        }
+        res.status(200).send(`Registered course ${course_id} added by student ${stud_id}`);
     });
+    return true;
 }
 
 //checked

@@ -1,6 +1,7 @@
 const {Pool} = require('pg');
-const {config} = require('../config');
+const config = require('../config');
 
+console.log(config)
 const pool = new Pool({
     user: config.user,
     host: config.host,
