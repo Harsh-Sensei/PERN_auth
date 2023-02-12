@@ -151,7 +151,7 @@ exports.addCourse = async (req, res) => {
         EXCEPT SELECT course_id FROM takes WHERE id='${stud_id}' ;`;;
     tmp_q2 = `select time_slot_id from section NATURAL JOIN takes WHERE takes.id='${stud_id}'   
     AND takes.year=${year} AND takes.semester=${semester}`;
-    tmp_q3 = `select time_slot_id from section WHERE course_id=${course_id} AND year=${year} AND semester=${semester}`;
+    tmp_q3 = `select time_slot_id from section WHERE course_id=${course_id} AND year=${year} AND semester=${semester} AND sec_id = '${section}'`;
     tmp_q_add = `INSERT INTO takes VALUES ('${stud_id}', '${course_id}', ${section}, '${semester}', ${year}, NULL)`;
 
     const p1 = await db.query(tmp_q1, []).then((result) => {
